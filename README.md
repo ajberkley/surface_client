@@ -13,7 +13,8 @@ sudo apt-get install python3.7  # Ubuntu
 sudo dnf install python37 # Fedora 
 ```
 
-For windows: Install python 3.7.  Start a command shell
+For windows: Install python 3.7.  Start a command shell and navigate to where you have
+downloaded or installed the surface_client code, then type the following:
 ```
 pip install virtualenv
 virtualenv env
