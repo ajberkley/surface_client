@@ -1,10 +1,12 @@
 # PYTHON 3.7
+import iso8601
 import requests
 import csv
 import json
 import argparse
 import sys
-VERSION="v0.2 October 2019"
+import tzlocal
+VERSION="v0.3 November 2019"
 AUTHOR="ajberkley@gmail.com"
 
 PROG_DESCRIPTION='For a single longitude and latitude point or a region, generate a CSV file from EC surface archive across a span of time -- %s %s' % (AUTHOR, VERSION)
@@ -20,6 +22,7 @@ parser.add_argument('-var', dest='var', help='sfc_temp, sfc_pres, or wind')
 parser.add_argument('-output', dest='output', help='Output CSV filename')
 parser.add_argument('-url', dest='url', help='Default is http://surface.canadarasp.com:8080/data', default='http://surface.canadarasp.com:8080/data')
 parser.add_argument('-model', dest='model', help='Default is "hrdps_continental", for GDPS use "glb"', default='hrdps_continental')
+parser.add_argument('--localtime', dest='localtime', help='If present', action='store_true')
 
 def send_request(data):
     r = requests.post(args.url, data=data)
@@ -57,6 +60,13 @@ if args.lon_e and args.lat_e:
     data = get_data_for_region(args.lon, args.lat, args.lon_e, args.lat_e, args.start_time, args.var, args.model,  args.end_time or args.start_time)
 else:
     data = get_data_at_point(args.lon, args.lat, args.start_time, args.var, args.model, args.end_time or args.start_time)
+
+if args.localtime: # convert to localtime
+    for row in data:
+        datetime = iso8601.parse_date(row['time'])
+        localdatetime = datetime.astimezone(tzlocal.get_localzone())
+        row['time'] = localdatetime.isoformat()
+
 if args.output:
     with open(args.output,'w') as file:
         write_dicts_to_csv(file, data)
