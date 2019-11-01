@@ -58,7 +58,7 @@ if args.lon_e and args.lat_e:
 else:
     data = get_data_at_point(args.lon, args.lat, args.start_time, args.var, args.model, args.end_time or args.start_time)
 if args.output:
-    with open(file,'w') as file:
+    with open(args.output,'w') as file:
         write_dicts_to_csv(file, data)
 else:
     write_dicts_to_csv(sys.stdout, data)
