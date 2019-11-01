@@ -1,6 +1,10 @@
 # surface_client
 A Python client to interface with surface.canadarasp.com which serves archived HRDPS surface data.
 
+# Downloading from git:
+
+git clone https://github.com/ajberkley/surface_client.git
+
 # Installation
 To install on a unix machine:
 ```
@@ -9,10 +13,14 @@ sudo apt-get install python3.7  # Ubuntu
 sudo dnf install python37 # Fedora 
 ```
 
-For windows (untested): Install python 3.7.  Start a command shell
+For windows: Install python 3.7.  Start a command shell
+```
+pip install virtualenv
+virtualenv env
+env\Scripts\activate
+python surface_client.py
 
 ```
-git clone https://github.com/ajberkley/surface_client.git
 cd surface_client
 virtualenv -p `which python3.7` env # or python3.7 -m venv env
 source env/bin/activate
