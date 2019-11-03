@@ -18,15 +18,17 @@ parser.add_argument('-lon2', dest='lon_e', type=float, help='Longitude of other 
 parser.add_argument('-lat2', dest='lat_e', type=float, help='Latitude of other corner if one wants a region')
 parser.add_argument('-start', dest='start_time', help='RFC3339 time stamp of starting date/time like 2019-10-01T07:00:00Z or 2019-10-01T07:00:00PDT', required=True)
 parser.add_argument('-end', dest='end_time', help='RFC3339 time stamp of ending date/time like 2019-10-01T08:00:00Z')
-parser.add_argument('-var', dest='var', help='sfc_temp, sfc_pres, or wind')
+parser.add_argument('-var', dest='var', help='sfc_temp, sfc_pres, wind, max_gust, or sfc_prate.  call this with --variables to get up to date list.')
 parser.add_argument('-output', dest='output', help='Output CSV filename')
-parser.add_argument('-url', dest='url', help='Default is http://surface.canadarasp.com:8080/data', default='http://surface.canadarasp.com:8080/data')
+parser.add_argument('-url', dest='url', help='Default is http://surface.canadarasp.com:8080/', default='http://surface.canadarasp.com:8080/')
 parser.add_argument('-model', dest='model', help='Default is "hrdps_continental", for GDPS use "glb"', default='hrdps_continental')
-parser.add_argument('--localtime', dest='localtime', help='If present', action='store_true')
+parser.add_argument('--localtime', dest='localtime', help='Convert data timestamps to local timezone', action='store_true')
+parser.add_argument('--variables', dest='variables', help='List all available variables', action='store_true')
 
-def send_request(data):
+def send_request(data, endpoint="/data"):
     try:
-        r = requests.post(args.url, data=data)
+        url = args.url + endpoint
+        r = requests.post(url, data=data)
     except requests.exceptions.ConnectionError as e:
         print(f'Error connecting to web server: {e}')
         exit(1)
@@ -52,6 +54,9 @@ def get_data_at_point(lon, lat, start_time, var, model, end_time):
     query = {'lon-lat-bbox': lon_lat_bbox, 'start-time': start_time, 'end-time': end_time, 'var': var, 'model': model}
     return send_request(query)
 
+def get_variables():
+    return send_request(None, endpoint="/variables")
+
 def write_dicts_to_csv(writeable, data):
     keys = data[0].keys()
     writer = csv.DictWriter(writeable, fieldnames=keys)
@@ -60,6 +65,13 @@ def write_dicts_to_csv(writeable, data):
         writer.writerow(datum)
 
 args = parser.parse_args()
+
+if args.variables:
+    print('Available variables are:')
+    for var, desc in get_variables().items():
+        print('%-10s %-10s' % (var, desc))
+    exit(0)
+    
 if args.lon_e and args.lat_e:
     data = get_data_for_region(args.lon, args.lat, args.lon_e, args.lat_e, args.start_time, args.var, args.model,  args.end_time or args.start_time)
 else:
