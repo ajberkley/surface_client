@@ -25,9 +25,9 @@ parser.add_argument('-model', dest='model', help='Default is "hrdps_continental"
 parser.add_argument('--localtime', dest='localtime', help='Convert data timestamps to local timezone', action='store_true')
 parser.add_argument('--variables', dest='variables', help='List all available variables', action='store_true')
 
-def send_request(data, endpoint="/data"):
+def send_request(data, endpoint="data"):
     try:
-        url = args.url + endpoint
+        url = args.url.strip('/') + '/' + endpoint
         r = requests.post(url, data=data)
     except requests.exceptions.ConnectionError as e:
         print(f'Error connecting to web server: {e}')
@@ -55,7 +55,7 @@ def get_data_at_point(lon, lat, start_time, var, model, end_time):
     return send_request(query)
 
 def get_variables():
-    return send_request(None, endpoint="/variables")
+    return send_request(None, endpoint="variables")
 
 def write_dicts_to_csv(writeable, data):
     keys = data[0].keys()
