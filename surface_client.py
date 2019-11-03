@@ -12,11 +12,11 @@ AUTHOR="ajberkley@gmail.com"
 PROG_DESCRIPTION='For a single longitude and latitude point or a region, generate a CSV file from EC surface archive across a span of time -- %s %s' % (AUTHOR, VERSION)
 
 parser = argparse.ArgumentParser(description=PROG_DESCRIPTION)
-parser.add_argument('-lon', dest='lon', type=float, help='Longitude of point', required=True)
-parser.add_argument('-lat', dest='lat', type=float, help='Latitude of point', required=True)
+parser.add_argument('-lon', dest='lon', type=float, help='Longitude of point')
+parser.add_argument('-lat', dest='lat', type=float, help='Latitude of point')
 parser.add_argument('-lon2', dest='lon_e', type=float, help='Longitude of other corner if one wants a region')
 parser.add_argument('-lat2', dest='lat_e', type=float, help='Latitude of other corner if one wants a region')
-parser.add_argument('-start', dest='start_time', help='RFC3339 time stamp of starting date/time like 2019-10-01T07:00:00Z or 2019-10-01T07:00:00PDT', required=True)
+parser.add_argument('-start', dest='start_time', help='RFC3339 time stamp of starting date/time like 2019-10-01T07:00:00Z or 2019-10-01T07:00:00PDT')
 parser.add_argument('-end', dest='end_time', help='RFC3339 time stamp of ending date/time like 2019-10-01T08:00:00Z')
 parser.add_argument('-var', dest='var', help='sfc_temp, sfc_pres, wind, max_gust, or sfc_prate.  call this with --variables to get up to date list.')
 parser.add_argument('-output', dest='output', help='Output CSV filename')
@@ -71,6 +71,9 @@ if args.variables:
     for var, desc in get_variables().items():
         print('%-10s %-10s' % (var, desc))
     exit(0)
+
+if not (args.lon and args.lat and args.start_time):
+    print('Need -lon -lat and -start_time')
     
 if args.lon_e and args.lat_e:
     data = get_data_for_region(args.lon, args.lat, args.lon_e, args.lat_e, args.start_time, args.var, args.model,  args.end_time or args.start_time)
