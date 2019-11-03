@@ -25,7 +25,11 @@ parser.add_argument('-model', dest='model', help='Default is "hrdps_continental"
 parser.add_argument('--localtime', dest='localtime', help='If present', action='store_true')
 
 def send_request(data):
-    r = requests.post(args.url, data=data)
+    try:
+        r = requests.post(args.url, data=data)
+    except requests.exceptions.ConnectionError as e:
+        print(f'Error connecting to web server: {e}')
+        exit(1)
     try:
         jsondata = json.loads(r.content)
     except Exception as e:
