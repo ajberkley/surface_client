@@ -6,7 +6,7 @@ import json
 import argparse
 import sys
 import tzlocal
-VERSION="v0.3 November 2019"
+VERSION="v0.4 November 2019"
 AUTHOR="ajberkley@gmail.com"
 
 PROG_DESCRIPTION='For a single longitude and latitude point or a region, generate a CSV file from EC surface archive across a span of time -- %s %s' % (AUTHOR, VERSION)
