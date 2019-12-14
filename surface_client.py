@@ -6,7 +6,7 @@ import json
 import argparse
 import sys
 import tzlocal
-VERSION="v0.4 November 2019"
+VERSION="v0.5 December 2019"
 AUTHOR="ajberkley@gmail.com"
 
 PROG_DESCRIPTION='For a single longitude and latitude point or a region, generate a CSV file from EC surface archive across a span of time -- %s %s' % (AUTHOR, VERSION)
@@ -63,6 +63,10 @@ def write_dicts_to_csv(writeable, data):
     writer.writeheader()
     for datum in data:
         writer.writerow(datum)
+
+if len(sys.argv)==1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
 
 args = parser.parse_args()
 
