@@ -37,14 +37,15 @@ def send_request(data, output_func, endpoint="data"):
         if r.status_code == 200:
             for chunk in r.iter_content(chunk_size=None):
                 jsondata = json.loads(chunk)
+                if("error" in jsondata):
+                    print(f'Error returned from web-server: {jsondata["error"]} with reason {jsondata["reason"]}')
+                    quit()
                 output_func(jsondata)
         else:
-            jsondata = json.loads(r.content)
-            print(f'Error returned from web-server: {jsondata["error"]} with reason {jsondata["reason"]}')
+            print(f'Server returned error code {r.status_code}')
             quit()
-
     except Exception as e:
-        print(f'Server returned bad JSON {r.content}: {e}')
+        print(f'Server returned bad JSON: {chunk}')
         quit()
 
 def get_data_for_region(lona, lata, lonb, latb, start_time, var, model, end_time, output):
