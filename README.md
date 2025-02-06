@@ -34,7 +34,12 @@ python surface_client.py
 # Usage
 To get a list of options:
 
-```python surface_client.py -h```
+```
+cd surface_client
+virtualenv -p `which python3.7` env # or python3.7 -m venv env
+source env/bin/activate
+python surface_client.py -h
+```
 
 Getting one variable at a single point over a time sequence
 
