@@ -36,22 +36,8 @@ To get a list of options:
 
 ```python surface_client.py -h```
 
-Getting one variable at a single point over a time sequence
+Getting one variable at a single point over a time sequence and emitting to a CSV file
 
-```python surface_client.py -lon -122.0 -lat 48.0 -start 2019-12-23T00:00:00Z -end 2019-12-23T01:00:00Z -var sfc_temp```
+```python surface_client.py -lon -122.0 -lat 48.0 -initstart 2024-06-23T00:00:00Z -initend 2024-06-23T12:00:00Z -var wind -output blarg.csv```
 
-Getting one variable at a single point over a time sequence, specifying time in PST:
-
-```python surface_client.py -lon -122.0 -lat 48.0 -start 2019-12-23T07:00:00-07:00 -end 2019-12-23T08:00:00-07:00 -var sfc_temp```
-
-Getting a variable across a rectangular region over a time sequence:
-
-```python surface_client.py -lon -122.0 -lat 48.0 -lon2 -122.01 -lat2 48.1 -start 2019-12-23T00:00:00Z -end 2019-12-23T01:00:00Z -var wind```
-
-To have the output timestamps converted from UTC time to local time:
-
-```python surface_client.py --localtime -lon -122.0 -lat 48.0 -lon2 -122.01 -lat2 48.1 -start 2019-12-23T00:00:00Z -end 2019-12-23T01:00:00Z -var wind```
-
-To output to a file:
-
-```python surface_client.py --localtime -lon -122.0 -lat 48.0 -lon2 -122.01 -lat2 48.1 -start 2019-12-23T00:00:00Z -end 2019-12-23T01:00:00Z -var wind -output output.csv```
+If the download is interrupted, repeat the call above and it will scan the output file for the missing data and continue.  initstart and initend must have an hour indicator of 00, 06, 12, or 18, the initialization hours of the HRDPS model.
