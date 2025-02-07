@@ -7,7 +7,7 @@ import argparse
 import sys
 import tzlocal
 import datetime
-VERSION="v0.9 January 2020"
+VERSION="v0.9a Feb 2025"
 AUTHOR="Andrew Berkley (ajberkley@gmail.com)"
 
 PROG_DESCRIPTION='For a single longitude and latitude point or a region, generate a CSV file from a single variable from the EC surface archive across a span of time -- %s %s' % (AUTHOR, VERSION)
@@ -17,11 +17,11 @@ parser.add_argument('-lon', dest='lon', type=float, help='Longitude of point')
 parser.add_argument('-lat', dest='lat', type=float, help='Latitude of point')
 parser.add_argument('-lon2', dest='lon_e', type=float, help='Longitude of other corner if one wants a region')
 parser.add_argument('-lat2', dest='lat_e', type=float, help='Latitude of other corner if one wants a region')
-parser.add_argument('-start', dest='start_time', help='RFC3339 time stamp of starting date/time like 2019-10-01T07:00:00Z or 2019-10-01T07:00:00-07:00')
-parser.add_argument('-end', dest='end_time', help='RFC3339 time stamp of ending date/time like 2019-10-01T08:00:00Z')
+parser.add_argument('-initstart', dest='init_time_start', help='RFC3339 time stamp of HRDPS run like 2019-10-01T06:00:00Z.  Possible init hours are 0, 6, 12, 18.')
+parser.add_argument('-initend', dest='init_time_end', help='RFC3339 time stamp of HRDPS run like 2019-10-01T06:00:00Z.  Possible final hours are 0, 6, 12, 18.')
 parser.add_argument('-var', dest='var', help='sfc_temp, sfc_pres, wind, max_gust, or sfc_prate.  call this with --variables to get up to date list.')
-parser.add_argument('-output', dest='output', help='Output CSV filename.  If the file exists, it will be appended to after adjusting start_time to be past the last date of any data in the file.')
-parser.add_argument('-url', dest='url', help='Default is http://surface.canadarasp.com:8080/', default='http://surface.canadarasp.com:8080/')
+parser.add_argument('-output', dest='output', help='Output CSV filename.  If the file exists, it will be appended to after adjusting initstart to be past the last date of any initialization date in the file.')
+parser.add_argument('-url', dest='url', help='Default is http://surface.canadarasp.com:8090/', default='http://surface.canadarasp.com:8090/')
 parser.add_argument('-model', dest='model', help='Default is "hrdps_continental", for GDPS use "glb"', default='hrdps_continental')
 parser.add_argument('--localtime', dest='localtime', help='Convert data timestamps to local timezone', action='store_true')
 parser.add_argument('--variables', dest='variables', help='List all available variables', action='store_true')
@@ -48,14 +48,14 @@ def send_request(data, output_func, endpoint="data"):
         print(f'Server returned bad JSON: {chunk}')
         quit()
 
-def get_data_for_region(lona, lata, lonb, latb, start_time, var, model, end_time, output):
+def get_data_for_region(lona, lata, lonb, latb, init_time_start, init_time_end, var, model, output):
     lon_lat_bbox = '%f, %f, %f, %f' % (lona, lata, lonb, latb)
-    query = {'lon-lat-bbox': lon_lat_bbox, 'start-time': start_time, 'end-time': end_time, 'var': var, 'model': model}
+    query = {'lon-lat-bbox': lon_lat_bbox, 'init-time-start': init_time_start, 'init-time-end': init_time_end, 'var': var, 'model': model}
     return send_request(query, output)
 
-def get_data_at_point(lon, lat, start_time, var, model, end_time, output):
+def get_data_at_point(lon, lat, init_time_start, init_time_end, var, model, output):
     lon_lat_bbox = '%f, %f' % (lon, lat)
-    query = {'lon-lat-bbox': lon_lat_bbox, 'start-time': start_time, 'end-time': end_time, 'var': var, 'model': model}
+    query = {'lon-lat-bbox': lon_lat_bbox, 'init-time-start': init_time_start, 'init-time-end': init_time_end, 'var': var, 'model': model}
     return send_request(query, output)
 
 def get_variables(output_func):
@@ -104,27 +104,28 @@ if args.variables:
     get_variables(output_variables)
     exit(0)
 
-if not (args.lon and args.lat and args.start_time):
-    print('Need -lon -lat and -start_time')
+if not (args.lon and args.lat and args.init_time_start):
+    print('Need -lon -lat and -initstart')
     
 if args.output: # Does the file have any data already?
     try:
         with open(args.output,'r') as file:
             reader = csv.DictReader(file)
-            original_start_time = args.start_time
+            original_start_time = args.init_time_start
             notified = False
             for row in reader:
                 wrote_header = True
-                start_time = iso8601.parse_date(args.start_time)
-                data_time = iso8601.parse_date(row['time'])
-                if data_time >= start_time:
-                    data_time = data_time + datetime.timedelta(hours=1)
-                    if not notified:
-                        notified = True
-                        print('There is existing data in output file, updating start_time')
-                    args.start_time = data_time.isoformat()
+                start_time = iso8601.parse_date(args.init_time_start)
+                if row['inittime'] != "unavailable":
+                    data_time = iso8601.parse_date(row['inittime'])
+                    if data_time >= start_time:
+                        data_time = data_time + datetime.timedelta(hours=6)
+                        if not notified:
+                            notified = True
+                            print('There is existing data in output file, updating initstart')
+                        args.init_time_start = data_time.isoformat()
             if notified:
-                print(f'Updated start_time from {original_start_time} to {args.start_time}')
+                print(f'Updated initstart from {original_start_time} to {args.init_time_start}')
                 
     except FileNotFoundError:
         pass
@@ -136,7 +137,7 @@ def writer(data):
     write_to_csv(convert_to_localtime(data))
 
 if args.lon_e and args.lat_e:
-    get_data_for_region(args.lon, args.lat, args.lon_e, args.lat_e, args.start_time, args.var, args.model,  args.end_time or args.start_time, writer)
+    get_data_for_region(args.lon, args.lat, args.lon_e, args.lat_e, args.init_time_start, args.init_time_end or args.init_time_start, args.var, args.model, writer)
 else:
-    get_data_at_point(args.lon, args.lat, args.start_time, args.var, args.model, args.end_time or args.start_time, writer)
+    get_data_at_point(args.lon, args.lat, args.init_time_start, args.init_time_end or args.init_time_start, args.var, args.model, writer)
 
