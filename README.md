@@ -2,9 +2,9 @@
 A Python client to interface with surface.canadarasp.com which serves archived HRDPS surface data.  This modified client provides grabbing data by the initialization time of the model and works against a temporary endpoint.
 
 # Downloading from git:
-
+```
 git clone https://github.com/ajberkley/surface_client.git; git checkout full-history
-
+```
 # Installation on UNIX
 To install on a unix machine:
 ```
