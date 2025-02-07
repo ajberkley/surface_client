@@ -3,7 +3,7 @@ A Python client to interface with surface.canadarasp.com which serves archived H
 
 # Downloading from git:
 ```
-git clone https://github.com/ajberkley/surface_client.git; git checkout full-history
+git clone https://github.com/ajberkley/surface_client.git; cd surface_client; git checkout full-history
 ```
 # Installation on UNIX
 To install on a unix machine:
